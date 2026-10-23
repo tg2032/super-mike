@@ -217,7 +217,58 @@ A.plat(147,148,9);
 A.coins(146,149,8);
 A.enemy(154);A.enemy(159,'tobi');
 A.stairs(162,6,'up');
-A.flag(168);}}];
+A.flag(168);}},
+{name:'1-4 ゆうやけのいせき',cols:180,sky:['#e8704a','#ffd6a0'],build(A){
+A.ground(0,22);A.ground(26,50);A.ground(55,70);A.ground(74,100);A.ground(104,125);A.ground(130,150);A.ground(155,179);
+A.start(3);
+A.enemy(10);A.pipe(14,2);A.enemy(18,'tobi');
+A.coins(23,25,9);
+A.spikes(30,31);
+A.row(33,38,8,'B');A.q(35,8,'M');A.q(37,8);
+A.enemy(42);A.enemy(46,'tobi');
+A.plat(52,53,10);A.coins(51,54,9);
+A.enemy(60);A.pipe(62,3);A.enemy(67,'tobi');
+A.coins(71,73,9);
+A.stairs(76,4,'up');A.stairs(80,4,'down');
+A.enemy(86);A.enemy(91,'tobi');
+A.spikes(97,98);
+A.coins(101,103,9);
+A.q(107,8);A.q(109,8,'M');A.q(111,8);
+A.enemy(114);A.enemy(118,'tobi');A.pipe(121,2);
+A.plat(127,128,10);A.coins(126,129,9);
+A.row(133,138,7,'B');A.enemy(136);
+A.spikes(141,143);
+A.plat(152,153,10);A.coins(151,154,9);
+A.stairs(160,6,'up');
+A.flag(170);}},
+{name:'1-5 よるのさいごのたたかい',cols:210,sky:['#0f1b4d','#4a5ea8'],build(A){
+A.ground(0,20);A.ground(24,44);A.ground(49,60);A.ground(65,80);A.ground(85,110);A.ground(115,135);A.ground(140,160);A.ground(165,185);A.ground(190,209);
+A.start(3);
+A.enemy(9);A.enemy(16,'tobi');
+A.coins(21,23,9);
+A.q(28,8);A.q(30,8,'M');
+A.spikes(36,38);
+A.enemy(27);
+A.plat(46,47,11);A.coins(45,48,10);
+A.enemy(57);
+A.plat(62,63,11);A.coins(61,64,10);
+A.stairs(67,4,'up');A.stairs(71,4,'down');
+A.plat(82,83,11);A.coins(81,84,10);
+A.spikes(91,93);
+A.row(96,100,8,'B');A.q(98,8,'M');
+A.enemy(103);A.pipe(107,3);
+A.plat(112,113,11);A.coins(111,114,10);
+A.pipe(119,2);A.spikes(125,127);
+A.enemy(131);
+A.plat(137,138,11);A.coins(136,139,10);
+A.row(143,148,8,'B');A.q(145,8);A.q(147,8,'M');
+A.enemy(152);A.enemy(156,'tobi');
+A.plat(162,163,11);A.coins(161,164,10);
+A.enemy(169);
+A.spikes(177,179);
+A.plat(187,188,11);A.coins(186,189,10);
+A.stairs(192,6,'up');
+A.flag(200);}}];
 let state='title',t=0,score=0,coinsN=0,lives=3,levelIndex=0;
 let level=null,ents=[],particles=[],cam={x:0};
 const player={x:120,y:446,w:26,h:34,vx:0,vy:0,facing:1,onGround:false,
@@ -462,7 +513,8 @@ if(levelBanner>0)levelBanner-=dt;
 bgmTick();}
 function drawSky(){
 const g=ctx.createLinearGradient(0,0,0,VH);
-g.addColorStop(0,'#4d8ff5');g.addColorStop(1,'#a6d8ff');
+const sk=(level&&level.def.sky)||['#4d8ff5','#a6d8ff'];
+g.addColorStop(0,sk[0]);g.addColorStop(1,sk[1]);
 ctx.fillStyle=g;ctx.fillRect(0,0,VW,VH);}
 function drawParallax(){
 const c1=(cam.x*.25)%420;
