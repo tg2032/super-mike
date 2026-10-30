@@ -278,7 +278,12 @@ function sparks(x,y,n,color){
 for(let i=0;i<n;i++){const a=Math.random()*6.283,v=80+Math.random()*160;
 particles.push({kind:'spark',x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,t:.5+Math.random()*.4,color:color});}}
 let fadeIn=0,fwT=0,hiScore=0,hiDirty=false,stompCombo=0;
-try{hiScore=parseInt(localStorage.getItem('mike_hi'),10)||0;}catch(e){}
+let maxLevel=0,startLevel=0;
+try{hiScore=parseInt(localStorage.getItem('mike_hi'),10)||0;maxLevel=parseInt(localStorage.getItem('mike_max'),10)||0;}catch(e){}
+function pickStage(d){
+if(state!=='title')return;
+startLevel=Math.max(0,Math.min(Math.min(maxLevel,LEVELS.length-1),startLevel+d));
+Sfx.init();Sfx.tone(660,0,.05,'square',.04);}
 function popup(x,y,str,color){particles.push({kind:'pop',x:x,y:y,vx:0,vy:-70,t:.9,str:str,color:color||'#fff'});}
 function addCoin(){
 coinsN++;
@@ -375,7 +380,7 @@ player.onGround=true;player.walk=0;
 cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;
 jumpBuffer=0;coyote=0;
 state='playing';BGM.next=0;}
-function startGame(){score=0;coinsN=0;lives=3;Sfx.start();loadLevel(0);}
+function startGame(){score=0;coinsN=0;lives=3;Sfx.start();loadLevel(startLevel);}
 function nextLevel(){
 if(levelIndex+1>=LEVELS.length){state='win';BGM.next=0;}
  else loadLevel(levelIndex+1,true);}
@@ -390,6 +395,7 @@ BGM.next=0;Sfx.flag();}
 function finishLevel(){
 if(clearPending)return;
 clearPending=true;
+if(levelIndex+1>maxLevel){maxLevel=Math.min(levelIndex+1,LEVELS.length-1);try{localStorage.setItem('mike_max',String(maxLevel));}catch(e){}}
 timeBonus=level.time*10;
 score+=timeBonus+flagBonus;
 state='clear';BGM.next=0;Sfx.clear();}
@@ -429,8 +435,11 @@ p.vy=-JUMP_V;p.onGround=false;coyote=0;jumpBuffer=0;Sfx.jump();}
 jumpBuffer=Math.max(0,jumpBuffer-dt);
 coyote=p.onGround?.1:Math.max(0,coyote-dt);
 p.vy=Math.min(p.vy+GRAV*dt,MAXFALL);
+const wasG=p.onGround,pvy=p.vy;
 moveX(p,dt);
 moveY(p,dt,true);
+if(!wasG&&p.onGround&&pvy>380){
+for(let i=0;i<5;i++)particles.push({kind:'dust',x:p.x+p.w/2,y:p.y+p.h,vx:(i-2)*55,vy:-70-i*8,t:.3});}
 if(p.onGround)p.walk+=Math.abs(p.vx)*dt*.045;
 if(p.onGround)stompCombo=0;
 tileTriggers();
@@ -828,9 +837,10 @@ text('SUPER MIKE no DAIBOUKEN',VW/2,190,18,'center','#fff');
 text('PC: ←→ でうごく ／ SPACE ジャンプ ／ SHIFT はしる',VW/2,280,21,'center');
 text('モバイル: 画面下のボタンで うごく・ジャンプ',VW/2,320,21,'center');
 text('コインをあつめて はた（きょしゅう）をのぼろう！',VW/2,368,21,'center','#ffe6bf');
-text('HI-SCORE  '+hiScore,VW/2,410,20,'center','#ffd93d');
+text('HI-SCORE  '+hiScore,VW/2,402,20,'center','#ffd93d');
+if(maxLevel>0)text('◀ ステージ '+LEVELS[startLevel].name.slice(0,3)+' ▶',VW/2,432,22,'center','#ffffff');
 if(Math.floor(t*2)%2===0)
-text('スペース / タップ で スタート',VW/2,452,27,'center','#7dff9a');
+text('スペース / タップ で スタート',VW/2,478,27,'center','#7dff9a');
 return;}
 if(state==='paused'){
 ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(0,0,VW,VH);
@@ -890,6 +900,7 @@ e.preventDefault();
 const k=KEYMAP[e.key];
 if(k){
 if(!e.repeat&&k==='jump')primaryAction();
+if(!e.repeat&&state==='title'){if(k==='left')pickStage(-1);else if(k==='right')pickStage(1);}
 input[k]=true;return;}
 const key=e.key.toLowerCase();
 if(key==='p'||key==='escape'){
@@ -909,6 +920,7 @@ const k=b.dataset.k;
 const on=ev=>{ev.preventDefault();Sfx.init();
 if(k==='pause'){togglePause();return;}
 if(k==='jump')primaryAction();
+if(state==='title'){if(k==='left')pickStage(-1);else if(k==='right')pickStage(1);}
 input[k]=true;b.classList.add('on');
 if(b.setPointerCapture&&ev.pointerId!==undefined)
 try{b.setPointerCapture(ev.pointerId);}catch(e2){}};
