@@ -308,7 +308,7 @@ A.flag(190);}}];
 let state='title',t=0,score=0,coinsN=0,lives=3,levelIndex=0;
 let level=null,ents=[],particles=[],cam={x:0};
 const player={x:120,y:446,w:26,h:34,vx:0,vy:0,facing:1,onGround:false,
-big:false,invuln:0,walk:0};
+big:false,invuln:0,walk:0,star:0};
 const input={left:false,right:false,jump:false,run:false};
 function sparks(x,y,n,color){
 for(let i=0;i<n;i++){const a=Math.random()*6.283,v=80+Math.random()*160;
@@ -339,6 +339,9 @@ particles.push({kind:'coin',x:x*TILE+14,y:y*TILE-8,vx:0,vy:-430,t:.75});}
 function spawnMush(x,y){
 ents.push({type:'mush',x:x*TILE+6,y:y*TILE-28,w:28,h:28,vx:0,vy:0,dir:1,
 spd:95,active:true,squish:0,dead:false,onGround:true,walk:0,hopT:0});}
+function spawnStar(x,y){
+ents.push({type:'star',x:x*TILE+6,y:y*TILE-28,w:28,h:28,vx:0,vy:-300,dir:1,
+spd:130,active:true,squish:0,dead:false,onGround:false,walk:0,hopT:0});}
 function debris(x,y){
 for(let i=0;i<4;i++)
 particles.push({kind:'brick',x:x*TILE+(i%2)*20+4,y:y*TILE+Math.floor(i/2)*18+4,
@@ -348,7 +351,7 @@ const c=cell(tx,ty);
 if(c==='?'||c==='M'){
 level.g[ty][tx]='U';addBump(tx,ty);
 if(c==='?'){spawnCoinPop(tx,ty);score+=200;addCoin();popup(tx*TILE+4,ty*TILE-30,'200','#ffd93d');Sfx.coin();}
-else{spawnMush(tx,ty);Sfx.power();}}
+else{if(player.big)spawnStar(tx,ty);else spawnMush(tx,ty);Sfx.power();}}
 else if(c==='B'){
 if(player.big){level.g[ty][tx]=' ';debris(tx,ty);score+=50;Sfx.brick();}
 else{addBump(tx,ty);Sfx.bump();}}
@@ -417,7 +420,7 @@ player.lift=null;springCD=0;
 particles=[];
  if(!keep){player.w=26;player.h=34;player.big=false;}
  player.x=level.startCol*TILE+6;player.y=12*TILE-player.h-1;
-player.vx=0;player.vy=0;player.facing=1;player.invuln=0;
+player.vx=0;player.vy=0;player.facing=1;player.invuln=0;player.star=0;
 player.onGround=true;player.walk=0;
 cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;
 jumpBuffer=0;coyote=0;
@@ -469,6 +472,7 @@ else if(c==='S'&&p.vy>=0&&springCD<=0){p.vy=-1180;p.onGround=false;coyote=0;spri
 function updatePlaying(dt){
 const p=player;
 p.invuln=Math.max(0,p.invuln-dt);
+if(p.star>0){p.star=Math.max(0,p.star-dt);if(Math.random()<.5)particles.push({kind:'spark',x:p.x+Math.random()*p.w,y:p.y+Math.random()*p.h,vx:0,vy:-30,t:.4,color:'hsl('+Math.floor(Math.random()*360)+',100%,65%)'});}
 const maxSpd=input.run?RUN:WALK;
 const acc=p.onGround?ACC:ACC_A;
 if(input.left&&!input.right){p.vx-=acc*dt;p.facing=-1;}
@@ -524,12 +528,13 @@ if(e.x<e.minX)e.dir=1;else if(e.x>e.maxX)e.dir=-1;
 e.y=e.baseY+Math.sin(e.ph)*40;
 e.walk+=dt*12;
 }else{
-if(e.type!=='mush'&&cell(Math.floor((e.x+(e.dir>0?e.w+3:-3))/TILE),Math.floor((e.y+e.h-3)/TILE))==='^')e.dir*=-1;
+if(e.type!=='mush'&&e.type!=='star'&&cell(Math.floor((e.x+(e.dir>0?e.w+3:-3))/TILE),Math.floor((e.y+e.h-3)/TILE))==='^')e.dir*=-1;
 e.vx=e.dir*e.spd;
 e.vy=Math.min(e.vy+GRAV*dt,MAXFALL);
 moveX(e,dt);
 if(e.hitWall)e.dir*=-1;
 moveY(e,dt,false);
+if(e.type==='star'&&e.onGround)e.vy=-480;
 e.walk+=Math.abs(e.vx)*dt*.05;
 if(e.type==='tobi'){
 e.hopT-=dt;
@@ -540,6 +545,8 @@ if(e.type==='mush'){
 e.dead=true;
 if(!p.big){grow();Sfx.power();}
 else{score+=1000;popup(e.x,e.y-8,'1000','#ffd93d');Sfx.coin();}}
+else if(e.type==='star'){e.dead=true;p.star=8;score+=1000;popup(e.x,e.y-8,'STAR!','#ffd93d');Sfx.tone(523,0,.1,'square',.05);Sfx.tone(784,0,.1,'square',.05,.08);Sfx.tone(1047,0,.2,'square',.05,.16);}
+else if(p.star>0){e.squish=.45;stompCombo++;score+=200;popup(e.x,e.y-8,'200','#fff');sparks(e.x+e.w/2,e.y+e.h/2,6,'#ffd93d');Sfx.stomp();}
 else if(e.type!=='spiny'&&p.vy>0&&(p.y+p.h)-e.y<28){
 e.squish=.45;
 p.vy=input.jump?-700:-540;
@@ -787,6 +794,7 @@ function drawPlayer(){
 const p=player;
 if(state==='playing'&&p.invuln>0&&Math.floor(t*16)%2===0)return;
 ctx.save();
+if(p.star>0&&(p.star>2||Math.floor(t*10)%2===0))ctx.filter='hue-rotate('+Math.floor(t*720)%360+'deg) saturate(2) brightness(1.2)';
 ctx.translate(p.x+p.w/2,p.y+p.h);
 ctx.scale(p.w/26,p.h/34);
 ctx.scale(p.facing,1);
@@ -827,7 +835,12 @@ ctx.restore();}
 function drawEnt(e){
 ctx.save();
 ctx.translate(e.x+e.w/2,e.y+e.h);
-if(e.type==='mush'){
+if(e.type==='star'){
+ctx.rotate(Math.sin(t*8)*.2);
+ctx.fillStyle='hsl('+Math.floor(t*360)%360+',100%,60%)';
+ctx.beginPath();for(let i=0;i<10;i++){const r=i%2?7:15,a=-Math.PI/2+i*Math.PI/5;ctx.lineTo(Math.cos(a)*r,-14+Math.sin(a)*r);}
+ctx.closePath();ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#222';ctx.fillRect(-4,-16,2,4);ctx.fillRect(2,-16,2,4);
+}else if(e.type==='mush'){
 ctx.fillStyle='rgba(0,0,0,.25)';
 ctx.beginPath();ctx.ellipse(0,2,12,3,0,0,7);ctx.fill();
 ctx.fillStyle='#f6e3c5';
@@ -1001,7 +1014,7 @@ for(const l of lifts){
 ctx.fillStyle='#7a5a38';rr(l.x,l.y,l.w,l.h,5);ctx.fill();
 ctx.fillStyle='#a07c4f';ctx.fillRect(l.x+3,l.y+2,l.w-6,4);
 ctx.fillStyle='#4a3520';ctx.beginPath();ctx.arc(l.x+10,l.y+9,2.5,0,7);ctx.arc(l.x+l.w-10,l.y+9,2.5,0,7);ctx.fill();}
-for(const e of ents)if(!e.dead&&(e.active||e.type==='mush'))drawEnt(e);
+for(const e of ents)if(!e.dead&&(e.active||e.type==='mush'||e.type==='star'))drawEnt(e);
 drawParticles();
 drawPlayer();}
 ctx.restore();
