@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>スーパーミケの大冒険</title>
+<meta name="description" content="ブラウザで遊べるマリオ風アクションゲーム。PC・スマホ対応、全6ステージ。">
+<meta name="theme-color" content="#0a0a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta property="og:title" content="スーパーミケの大冒険">
+<meta property="og:description" content="ブラウザで遊べるマリオ風アクションゲーム。PC・スマホ対応、全6ステージ。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%B1%3C/text%3E%3C/svg%3E">
 <style>
 html,body{margin:0;padding:0;height:100%;background:#0a0a1a;overflow:hidden;
 touch-action:none;-webkit-user-select:none;user-select:none;
@@ -413,7 +421,15 @@ player.onGround=true;player.walk=0;
 cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;
 jumpBuffer=0;coyote=0;
 state='playing';BGM.next=0;}
-function startGame(){score=0;coinsN=0;lives=3;Sfx.start();loadLevel(startLevel);}
+function tryFullscreen(){
+if(!matchMedia('(hover:none) and (pointer:coarse)').matches)return;
+try{
+const el=document.documentElement;
+const req=el.requestFullscreen||el.webkitRequestFullscreen;
+if(req&&!document.fullscreenElement){const r=req.call(el);if(r&&r.catch)r.catch(()=>{});}
+if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});
+}catch(e){}}
+function startGame(){tryFullscreen();score=0;coinsN=0;lives=3;Sfx.start();loadLevel(startLevel);}
 function nextLevel(){
 if(levelIndex+1>=LEVELS.length){state='win';BGM.next=0;}
  else loadLevel(levelIndex+1,true);}
