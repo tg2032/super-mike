@@ -941,6 +941,7 @@ const items=[
 for(const [s,x] of items){
 const warn=s.startsWith('TIME')&&level&&level.time<=100&&Math.floor(t*4)%2===0;
 ctx.strokeText(s,x,12);ctx.fillStyle=warn?'#ff6b6b':'#fff';ctx.fillText(s,x,12);}
+if(state==='playing'&&player.star>0){const w=140*player.star/8;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(16,40,144,10);ctx.fillStyle='hsl('+Math.floor(t*360)%360+',100%,60%)';ctx.fillRect(18,42,w,6);ctx.textAlign='left';text('★',166,45,14,'left','#ffd93d');}
 ctx.textAlign='right';
 const mb='♪ '+(BGM.on&&!Sfx.muted?'ON':'OFF');
 ctx.strokeText(mb,VW-14,12);ctx.fillStyle='#fff';ctx.fillText(mb,VW-14,12);
