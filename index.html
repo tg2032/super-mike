@@ -945,6 +945,7 @@ const items=[
 for(const [s,x] of items){
 const warn=s.startsWith('TIME')&&level&&level.time<=100&&Math.floor(t*4)%2===0;
 ctx.strokeText(s,x,12);ctx.fillStyle=warn?'#ff6b6b':'#fff';ctx.fillText(s,x,12);}
+if(level&&(state==='playing'||state==='paused')){const L=level.cols*TILE,bx=16,bw=VW-32;ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(bx,3,bw,4);ctx.fillStyle='#6bc5ff';ctx.fillRect(bx,3,bw*Math.max(0,Math.min(1,(player.x+player.w/2)/L)),4);if(level.def.cp!=null){ctx.fillStyle=cpOn?'#7dff9a':'#fff';ctx.fillRect(bx+bw*level.def.cp*TILE/L-1,1,2,8);}}
 if(state==='playing'&&player.star>0){const w=140*player.star/8;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(16,40,144,10);ctx.fillStyle='hsl('+Math.floor(t*360)%360+',100%,60%)';ctx.fillRect(18,42,w,6);ctx.textAlign='left';text('★',166,45,14,'left','#ffd93d');}
 ctx.textAlign='right';
 const mb='♪ '+(BGM.on&&!Sfx.muted?'ON':'OFF');
