@@ -1008,8 +1008,10 @@ ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,VW,VH);
 text('ぜんぶ クリア おめでとう！',VW/2,200,46,'center','#ffd93d');
 text('SCORE  '+score,VW/2,280,30,'center','#7dff9a');
 text('コイン  '+coinsN,VW/2,330,26,'center');
+text('HI-SCORE  '+hiScore,VW/2,368,20,'center','#ffd93d');
+if(score>0&&score===hiScore&&Math.floor(t*3)%2===0)text('★ NEW RECORD! ★',VW/2,396,22,'center','#7dff9a');
 if(Math.floor(t*2)%2===0)
-text('スペース / タップ で タイトルへ',VW/2,420,22,'center');}}
+text('スペース / タップ で タイトルへ',VW/2,445,22,'center');}}
 function render(){
 ctx.setTransform(RS,0,0,RS,0,0);
 drawSky();drawParallax();
