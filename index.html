@@ -167,7 +167,7 @@ A.enemy(108);
 A.coins(112,116,9);
 A.stairs(120,5,'up');
 A.enemy(127);
-A.flag(132);}},
+A.enemy(50,'dash');A.flag(132);}},
 {name:'1-2 ひきばのつりばし',cols:160,build(A){
 A.ground(0,28);A.ground(32,58);A.ground(63,88);A.ground(93,120);A.ground(125,159);
 A.start(3);
@@ -194,7 +194,7 @@ A.coins(121,124,8);
 A.row(128,133,8,'B');A.q(131,8,'M');
 A.enemy(136);A.enemy(141,'tobi');
 A.stairs(144,5,'up');
-A.flag(152);}},
+A.enemy(39,'dash');A.enemy(108,'dash');A.flag(152);}},
 {name:'1-3 ふしぎのきょうこく',cols:175,build(A){
 A.ground(0,24);A.ground(28,45);A.ground(50,58);A.ground(63,90);
 A.ground(95,118);A.ground(123,145);A.ground(150,174);
@@ -228,7 +228,7 @@ A.plat(147,148,9);
 A.coins(146,149,8);
 A.enemy(154);A.enemy(159,'tobi');
 A.stairs(162,6,'up');
-A.flag(168);}},
+A.enemy(39,'dash');A.enemy(100,'dash');A.flag(168);}},
 {name:'1-4 ゆうやけのいせき',cols:180,sky:['#e8704a','#ffd6a0'],deco:'dusk',build(A){
 A.ground(0,22);A.ground(26,50);A.ground(55,70);A.ground(74,100);A.ground(104,125);A.ground(130,150);A.ground(155,179);
 A.start(3);
@@ -251,7 +251,7 @@ A.row(133,138,7,'B');A.enemy(136);
 A.spikes(141,143);
 A.plat(152,153,10);A.coins(151,154,9);
 A.stairs(160,6,'up');
-A.flag(170);}},
+A.enemy(37,'dash');A.enemy(147,'dash');A.flag(170);}},
 {name:'1-5 よるのさいごのたたかい',cols:210,sky:['#0f1b4d','#4a5ea8'],deco:'night',build(A){
 A.ground(0,20);A.ground(24,44);A.ground(49,60);A.ground(65,80);A.ground(85,110);A.ground(115,135);A.ground(140,160);A.ground(165,185);A.ground(190,209);
 A.start(3);
@@ -279,7 +279,7 @@ A.enemy(169);
 A.spikes(177,179);
 A.plat(187,188,11);A.coins(186,189,10);
 A.stairs(192,6,'up');
-A.flag(200);}},
+A.enemy(52,'dash');A.enemy(98,'dash');A.enemy(147,'dash');A.flag(200);}},
 {name:'1-6 そらのだんがい',cols:200,sky:['#2b8ae0','#d4f1ff'],build(A){
 A.ground(0,26);A.ground(33,55);A.ground(60,80);A.ground(87,110);A.ground(115,140);A.ground(147,170);A.ground(175,199);
 A.start(3);
@@ -304,7 +304,7 @@ A.spikes(158,160);A.enemy(165);
 A.plat(172,173,11);A.coins(171,174,10);
 A.stairs(182,5,'up');
 A.enemy(179);
-A.flag(190);}}];
+A.enemy(96,'dash');A.flag(190);}}];
 [null,95,76,105,87,88].forEach((c,i)=>{LEVELS[i].cp=c;});
 let state='title',t=0,score=0,coinsN=0,lives=3,levelIndex=0;
 let level=null,ents=[],particles=[],cam={x:0};
@@ -411,7 +411,7 @@ ents=level.spawns.map(s=>({
 type:s.type,
 x:s.cx*TILE+(TILE-34)/2,y:s.feetRow*TILE-34,
 w:34,h:34,vx:0,vy:0,dir:-1,
-spd:s.type==='tobi'?45:s.type==='spiny'?55:70,
+spd:s.type==='tobi'?45:s.type==='spiny'?55:s.type==='dash'?55:70,
 active:false,squish:0,dead:false,onGround:false,walk:0,
 hopT:.5+Math.random()*.8}));
 for(const e of ents)if(e.type==='flyer'){e.baseY=e.y;e.minX=e.x-120;e.maxX=e.x+120;e.ph=Math.random()*6;}
@@ -533,6 +533,9 @@ e.y=e.baseY+Math.sin(e.ph)*40;
 e.walk+=dt*12;
 }else{
 if(e.type!=='mush'&&e.type!=='star'&&cell(Math.floor((e.x+(e.dir>0?e.w+3:-3))/TILE),Math.floor((e.y+e.h-3)/TILE))==='^')e.dir*=-1;
+if(e.type==='dash'){const dx=(p.x+p.w/2)-(e.x+e.w/2);
+if(e.onGround&&Math.abs(dx)<300&&Math.abs(p.y-e.y)<80){e.dir=dx<0?-1:1;e.spd=210;e.mad=true;}else if(!e.mad)e.spd=55;
+if(Math.abs(dx)>420){e.mad=false;e.spd=55;}}
 e.vx=e.dir*e.spd;
 e.vy=Math.min(e.vy+GRAV*dt,MAXFALL);
 moveX(e,dt);
@@ -889,7 +892,18 @@ if(e.squish>0)ctx.scale(1.35,.32);
 ctx.fillStyle='rgba(0,0,0,.25)';
 ctx.beginPath();ctx.ellipse(0,2,15,3.5,0,0,7);ctx.fill();
 const wp=Math.sin(e.walk*10)*3;
-if(e.type==='tobi'){
+if(e.type==='dash'){
+const ang=e.mad;
+ctx.fillStyle=ang?'#ff4d3d':'#e07b39';
+ctx.beginPath();ctx.arc(0,-16,16,0,7);ctx.fill();
+ctx.fillStyle=ang?'#c0281c':'#b85c20';
+ctx.beginPath();ctx.ellipse(-8+wp,-2,8,5,0,0,7);ctx.ellipse(8-wp,-2,8,5,0,0,7);ctx.fill();
+ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-6,-19,5,0,7);ctx.arc(6,-19,5,0,7);ctx.fill();
+ctx.fillStyle='#111';ctx.beginPath();ctx.arc(-5+(e.dir>0?2:-2)*0,-18,2.4,0,7);ctx.arc(7,-18,2.4,0,7);ctx.fill();
+ctx.strokeStyle='#4a1209';ctx.lineWidth=3;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(-12,ang?-27:-25);ctx.lineTo(-2,ang?-22:-25);ctx.moveTo(12,ang?-27:-25);ctx.lineTo(2,ang?-22:-25);ctx.stroke();
+ctx.fillStyle='#fff3c4';ctx.beginPath();ctx.moveTo(-4,-31);ctx.lineTo(0,-40);ctx.lineTo(4,-31);ctx.closePath();ctx.fill();
+}else if(e.type==='tobi'){
 ctx.fillStyle='#2fbf6b';
 rr(-15,-30,30,30,12);ctx.fill();
 ctx.fillStyle='#249b56';
