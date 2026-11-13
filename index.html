@@ -115,8 +115,9 @@ const c=Sfx.ctx;
 if(!BGM.next){BGM.next=c.currentTime+0.05;BGM.i=0;}
 while(BGM.next<c.currentTime+0.15){
 const f=MELODY[BGM.i];
-if(f)Sfx.tone(f,0,.13,'square',.028,BGM.next-c.currentTime);
-BGM.next+=.155;BGM.i=(BGM.i+1)%MELODY.length;}}
+const st=player.star>0;
+if(f)Sfx.tone(st?f*1.5:f,0,st?.09:.13,'square',.028,BGM.next-c.currentTime);
+BGM.next+=st?.105:.155;BGM.i=(BGM.i+1)%MELODY.length;}}
 function makeLevel(def){
 const cols=def.cols;
 const g=Array.from({length:ROWS},()=>new Array(cols).fill(' '));
