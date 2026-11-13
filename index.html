@@ -999,8 +999,9 @@ ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,VW,VH);
 text('ゲームオーバー',VW/2,230,52,'center','#ff6b6b');
 text('SCORE  '+score,VW/2,300,28,'center');
 text('HI-SCORE  '+hiScore,VW/2,340,20,'center','#ffd93d');
+if(score>0&&score===hiScore&&Math.floor(t*3)%2===0)text('★ NEW RECORD! ★',VW/2,372,22,'center','#7dff9a');
 if(Math.floor(t*2)%2===0)
-text('スペース / タップ で タイトルへ',VW/2,390,22,'center');
+text('スペース / タップ で タイトルへ',VW/2,415,22,'center');
 return;}
 if(state==='win'){
 ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,VW,VH);
