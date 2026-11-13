@@ -325,7 +325,7 @@ function addCoin(){
 coinsN++;
 if(coinsN%50===0){lives++;popup(player.x,player.y-20,'1UP!','#7dff9a');Sfx.power();}}
 let jumpBuffer=0,coyote=0,deathT=0,levelBanner=0,flagPhase='',flagT=0;
-let flagBonus=0,timeBonus=0,castleCol=0,clearPending=false;
+let hitless=true,flagBonus=0,timeBonus=0,castleCol=0,clearPending=false;
 function cell(x,y){
 if(!level)return' ';
 if(x<0||x>=level.cols)return'#';
@@ -394,6 +394,7 @@ player.y+=oh-player.h;player.x+=2;player.invuln=1.5;}
 function buzz(n){try{if(navigator.vibrate&&!Sfx.muted)navigator.vibrate(n);}catch(e){}}
 function hurt(){
 if(state!=='playing'||player.invuln>0)return;
+hitless=false;
 if(player.big){shrink();Sfx.shrink();buzz(60);}
 else die(false);}
 function die(fall){
@@ -423,7 +424,7 @@ particles=[];
  player.x=level.startCol*TILE+6;player.y=12*TILE-player.h-1;
 player.vx=0;player.vy=0;player.facing=1;player.invuln=0;player.star=0;
 player.onGround=true;player.walk=0;
-cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;
+cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;hitless=true;
 jumpBuffer=0;coyote=0;
 state='playing';BGM.next=0;}
 function tryFullscreen(){
@@ -451,6 +452,7 @@ if(clearPending)return;
 clearPending=true;
 if(levelIndex+1>maxLevel){maxLevel=Math.min(levelIndex+1,LEVELS.length-1);try{localStorage.setItem('mike_max',String(maxLevel));}catch(e){}}
 timeBonus=level.time*10;
+if(hitless)flagBonus+=1500;
 score+=timeBonus+flagBonus;
 state='clear';BGM.next=0;Sfx.clear();}
 function primaryAction(){
@@ -578,7 +580,7 @@ if(deathT<=0){
 lives--;
 if(lives<=0){state='gameover';BGM.next=0;}
 else{
-const was=cpOn;loadLevel(levelIndex,false);
+const was=cpOn;loadLevel(levelIndex,false);hitless=false;
 if(was&&level.def.cp!=null){
 cpOn=true;player.invuln=1.5;player.x=level.def.cp*TILE+6;
 cam.x=Math.max(0,Math.min(level.cols*TILE-VW,player.x-VW/2));
@@ -985,7 +987,7 @@ ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(0,0,VW,VH);
 panel(VW/2-260,150,520,270);
 text('レベルクリア！',VW/2,205,42,'center','#ffd93d');
 text('タイムボーナス  '+timeBonus,VW/2,265,24,'center');
-text('はたボーナス  '+flagBonus,VW/2,305,24,'center');
+text('はたボーナス  '+flagBonus+(hitless?'  (ノーダメージ +1500!)':''),VW/2,305,24,'center',hitless?'#7dff9a':'#fff');
 text('スコア  '+score,VW/2,350,26,'center','#7dff9a');
 if(Math.floor(t*2)%2===0)
 text(levelIndex+1>=LEVELS.length?'スペース / タップ で けっか':'スペース / タップ で つぎのステージへ',
