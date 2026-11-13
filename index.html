@@ -313,7 +313,7 @@ const input={left:false,right:false,jump:false,run:false};
 function sparks(x,y,n,color){
 for(let i=0;i<n;i++){const a=Math.random()*6.283,v=80+Math.random()*160;
 particles.push({kind:'spark',x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,t:.5+Math.random()*.4,color:color});}}
-let cpOn=false,lifts=[],springCD=0,fadeIn=0,fwT=0,hiScore=0,hiDirty=false,stompCombo=0;
+let shake=0,cpOn=false,lifts=[],springCD=0,fadeIn=0,fwT=0,hiScore=0,hiDirty=false,stompCombo=0;
 let maxLevel=0,startLevel=0;
 try{hiScore=parseInt(localStorage.getItem('mike_hi'),10)||0;maxLevel=parseInt(localStorage.getItem('mike_max'),10)||0;}catch(e){}
 function pickStage(d){
@@ -353,7 +353,7 @@ level.g[ty][tx]='U';addBump(tx,ty);
 if(c==='?'){spawnCoinPop(tx,ty);score+=200;addCoin();popup(tx*TILE+4,ty*TILE-30,'200','#ffd93d');Sfx.coin();}
 else{if(player.big)spawnStar(tx,ty);else spawnMush(tx,ty);Sfx.power();}}
 else if(c==='B'){
-if(player.big){level.g[ty][tx]=' ';debris(tx,ty);score+=50;Sfx.brick();}
+if(player.big){level.g[ty][tx]=' ';debris(tx,ty);score+=50;Sfx.brick();shake=.25;}
 else{addBump(tx,ty);Sfx.bump();}}
 else if(SOLID.has(c))Sfx.bump();}
 function moveX(e,dt){
@@ -472,7 +472,7 @@ else if(c==='|'){startFlag();return;}
 else if(c==='S'&&p.vy>=0&&springCD<=0){p.vy=-1180;p.onGround=false;coyote=0;springCD=.3;Sfx.tone(300,900,.25,'sine',.07);sparks(p.x+p.w/2,p.y+p.h,6,'#ffffff');}}}
 function updatePlaying(dt){
 const p=player;
-p.invuln=Math.max(0,p.invuln-dt);
+p.invuln=Math.max(0,p.invuln-dt);shake=Math.max(0,shake-dt);
 if(p.star>0){p.star=Math.max(0,p.star-dt);if(Math.random()<.5)particles.push({kind:'spark',x:p.x+Math.random()*p.w,y:p.y+Math.random()*p.h,vx:0,vy:-30,t:.4,color:'hsl('+Math.floor(Math.random()*360)+',100%,65%)'});}
 const maxSpd=input.run?RUN:WALK;
 const acc=p.onGround?ACC:ACC_A;
@@ -1009,7 +1009,7 @@ text('スペース / タップ で タイトルへ',VW/2,420,22,'center');}}
 function render(){
 ctx.setTransform(RS,0,0,RS,0,0);
 drawSky();drawParallax();
-ctx.save();ctx.translate(-Math.round(cam.x),0);
+ctx.save();ctx.translate(-Math.round(cam.x)+(shake>0?(Math.random()-.5)*shake*14:0),shake>0?(Math.random()-.5)*shake*14:0);
 if(level){
 drawCastle();
 drawTiles();
