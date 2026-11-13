@@ -555,6 +555,7 @@ e.squish=.45;
 p.vy=input.jump?-700:-540;
 const pts=[100,200,400,800][Math.min(stompCombo,3)];
 stompCombo++;score+=pts;
+if(stompCombo===5){lives++;popup(player.x,player.y-40,'1UP! COMBO','#7dff9a');Sfx.power();}
 popup(e.x,e.y-8,String(pts),'#fff');
 for(let i=0;i<5;i++)particles.push({kind:'dust',x:e.x+e.w/2,y:e.y+e.h,vx:(i-2)*60,vy:-120-i*10,t:.35});
 Sfx.stomp();}
