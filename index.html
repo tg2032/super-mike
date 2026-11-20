@@ -326,7 +326,8 @@ function addCoin(){
 coinsN++;
 if(coinsN%50===0){lives++;popup(player.x,player.y-20,'1UP!','#7dff9a');Sfx.power();}}
 let jumpBuffer=0,coyote=0,deathT=0,levelBanner=0,flagPhase='',flagT=0;
-let hitless=true,flagBonus=0,timeBonus=0,castleCol=0,clearPending=false;
+const BT={};
+let bestTime=0,bestNew=false,hitless=true,flagBonus=0,timeBonus=0,castleCol=0,clearPending=false;
 function cell(x,y){
 if(!level)return' ';
 if(x<0||x>=level.cols)return'#';
@@ -456,6 +457,10 @@ if(clearPending)return;
 clearPending=true;
 if(levelIndex+1>maxLevel){maxLevel=Math.min(levelIndex+1,LEVELS.length-1);try{localStorage.setItem('mike_max',String(maxLevel));}catch(e){}}
 timeBonus=level.time*10;
+let bt=BT[levelIndex]||0;try{bt=Math.max(bt,parseInt(localStorage.getItem('mike_bt'+levelIndex),10)||0);}catch(e){}
+bestNew=level.time>bt;bestTime=Math.max(bt,level.time);
+BT[levelIndex]=bestTime;
+if(bestNew)try{localStorage.setItem('mike_bt'+levelIndex,String(bestTime));}catch(e){}
 if(hitless)flagBonus+=1500;
 score+=timeBonus+flagBonus;
 state='clear';BGM.next=0;Sfx.clear();}
@@ -1011,10 +1016,11 @@ panel(VW/2-260,150,520,270);
 text('レベルクリア！',VW/2,205,42,'center','#ffd93d');
 text('タイムボーナス  '+timeBonus,VW/2,265,24,'center');
 text('はたボーナス  '+flagBonus+(hitless?'  (ノーダメージ +1500!)':''),VW/2,305,24,'center',hitless?'#7dff9a':'#fff');
-text('スコア  '+score,VW/2,350,26,'center','#7dff9a');
+text('スコア  '+score,VW/2,345,26,'center','#7dff9a');
+text('ベスト のこりタイム  '+bestTime+(bestNew?'  ★NEW!':''),VW/2,375,16,'center',bestNew?'#ffd93d':'#cfe8ff');
 if(Math.floor(t*2)%2===0)
 text(levelIndex+1>=LEVELS.length?'スペース / タップ で けっか':'スペース / タップ で つぎのステージへ',
-VW/2,395,20,'center');
+VW/2,403,20,'center');
 return;}
 if(state==='gameover'){
 ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,VW,VH);
