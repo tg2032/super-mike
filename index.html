@@ -391,15 +391,16 @@ player.y+=oh-player.h;player.x-=2;player.invuln=.6;}
 function shrink(){
 const oh=player.h;
 player.big=false;player.h=34;player.w=26;
-player.y+=oh-player.h;player.x+=2;player.invuln=1.5;}
-function buzz(n){try{if(navigator.vibrate&&!Sfx.muted)navigator.vibrate(n);}catch(e){}}
+player.y+=oh-player.h;player.x+=2;player.invuln=1.5;hitless=false;}
+const TOUCH=window.matchMedia&&matchMedia('(pointer:coarse)').matches;
+function buzz(n){try{if(TOUCH&&navigator.vibrate&&!Sfx.muted)navigator.vibrate(n);}catch(e){}}
 function hurt(){
 if(state!=='playing'||player.invuln>0)return;
-hitless=false;
 if(player.big){shrink();Sfx.shrink();buzz(60);}
 else die(false);}
 function die(fall){
 if(state!=='playing')return;
+hitless=false;
 state='dying';deathT=fall?1.1:1.9;
 player.vy=fall?0:-650;player.vx=0;
 BGM.next=0;Sfx.die();buzz([80,40,120]);}
@@ -425,7 +426,7 @@ particles=[];
  player.x=level.startCol*TILE+6;player.y=12*TILE-player.h-1;
 player.vx=0;player.vy=0;player.facing=1;player.invuln=0;player.star=0;
 player.onGround=true;player.walk=0;
-cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;hitless=true;
+cam.x=0;levelBanner=2.6;fadeIn=.6;flagBonus=0;clearPending=false;if(keep!==false)hitless=true;
 jumpBuffer=0;coyote=0;
 state='playing';BGM.next=0;}
 function tryFullscreen(){
@@ -436,7 +437,9 @@ const req=el.requestFullscreen||el.webkitRequestFullscreen;
 if(req&&!document.fullscreenElement){const r=req.call(el);if(r&&r.catch)r.catch(()=>{});}
 if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});
 }catch(e){}}
-function startGame(){tryFullscreen();score=0;coinsN=0;lives=3;Sfx.start();loadLevel(startLevel);}
+let startHi=0;
+function newRecord(y){if(score>startHi&&Math.floor(t*3)%2===0)text('★ NEW RECORD! ★',VW/2,y,22,'center','#7dff9a');}
+function startGame(){tryFullscreen();startHi=hiScore;score=0;coinsN=0;lives=3;Sfx.start();loadLevel(startLevel);}
 function nextLevel(){
 if(levelIndex+1>=LEVELS.length){state='win';BGM.next=0;}
  else loadLevel(levelIndex+1,true);}
@@ -532,10 +535,13 @@ if(e.x<e.minX)e.dir=1;else if(e.x>e.maxX)e.dir=-1;
 e.y=e.baseY+Math.sin(e.ph)*40;
 e.walk+=dt*12;
 }else{
-if(e.type!=='mush'&&e.type!=='star'&&cell(Math.floor((e.x+(e.dir>0?e.w+3:-3))/TILE),Math.floor((e.y+e.h-3)/TILE))==='^')e.dir*=-1;
 if(e.type==='dash'){const dx=(p.x+p.w/2)-(e.x+e.w/2);
-if(e.onGround&&Math.abs(dx)<300&&Math.abs(p.y-e.y)<80){e.dir=dx<0?-1:1;e.spd=210;e.mad=true;}else if(!e.mad)e.spd=55;
-if(Math.abs(dx)>420){e.mad=false;e.spd=55;}}
+e.calm=Math.max(0,(e.calm||0)-dt);
+if(e.calm<=0&&e.onGround&&Math.abs(dx)<300&&Math.abs(p.y-e.y)<80){e.dir=dx<0?-1:1;e.spd=210;e.mad=true;}
+else if(!e.mad)e.spd=55;
+if(Math.abs(dx)>420||e.calm>0){e.mad=false;e.spd=55;}
+if(e.onGround&&!SOLID.has(cell(Math.floor((e.x+(e.dir>0?e.w+4:-4))/TILE),Math.floor((e.y+e.h+4)/TILE)))){e.dir*=-1;e.mad=false;e.spd=55;e.calm=1;}}
+if(e.type!=='mush'&&e.type!=='star'&&cell(Math.floor((e.x+(e.dir>0?e.w+3:-3))/TILE),Math.floor((e.y+e.h-3)/TILE))==='^')e.dir*=-1;
 e.vx=e.dir*e.spd;
 e.vy=Math.min(e.vy+GRAV*dt,MAXFALL);
 moveX(e,dt);
@@ -553,7 +559,7 @@ e.dead=true;
 if(!p.big){grow();Sfx.power();}
 else{score+=1000;popup(e.x,e.y-8,'1000','#ffd93d');Sfx.coin();}}
 else if(e.type==='star'){e.dead=true;p.star=8;buzz(40);score+=1000;popup(e.x,e.y-8,'STAR!','#ffd93d');Sfx.tone(523,0,.1,'square',.05);Sfx.tone(784,0,.1,'square',.05,.08);Sfx.tone(1047,0,.2,'square',.05,.16);}
-else if(p.star>0){e.squish=.45;stompCombo++;score+=200;popup(e.x,e.y-8,'200','#fff');sparks(e.x+e.w/2,e.y+e.h/2,6,'#ffd93d');Sfx.stomp();}
+else if(p.star>0){e.squish=.45;score+=200;popup(e.x,e.y-8,'200','#fff');sparks(e.x+e.w/2,e.y+e.h/2,6,'#ffd93d');Sfx.stomp();}
 else if(e.type!=='spiny'&&p.vy>0&&(p.y+p.h)-e.y<28){
 e.squish=.45;
 p.vy=input.jump?-700:-540;
@@ -585,7 +591,7 @@ if(deathT<=0){
 lives--;
 if(lives<=0){state='gameover';BGM.next=0;}
 else{
-const was=cpOn;loadLevel(levelIndex,false);hitless=false;
+const was=cpOn;loadLevel(levelIndex,false);
 if(was&&level.def.cp!=null){
 cpOn=true;player.invuln=1.5;player.x=level.def.cp*TILE+6;
 cam.x=Math.max(0,Math.min(level.cols*TILE-VW,player.x-VW/2));
@@ -801,8 +807,8 @@ drawTile(c,tx*TILE,ty*TILE,tx,ty);}}
 function drawPlayer(){
 const p=player;
 if(state==='playing'&&p.invuln>0&&Math.floor(t*16)%2===0)return;
+if(p.star>0&&(p.star>2||Math.floor(t*10)%2===0)){ctx.fillStyle='hsla('+Math.floor(t*720)%360+',100%,60%,.45)';ctx.beginPath();ctx.ellipse(p.x+p.w/2,p.y+p.h/2,p.w*.9,p.h*.75,0,0,7);ctx.fill();}
 ctx.save();
-if(p.star>0&&(p.star>2||Math.floor(t*10)%2===0))ctx.filter='hue-rotate('+Math.floor(t*720)%360+'deg) saturate(2) brightness(1.2)';
 ctx.translate(p.x+p.w/2,p.y+p.h);
 ctx.scale(p.w/26,p.h/34);
 ctx.scale(p.facing,1);
@@ -899,7 +905,7 @@ ctx.beginPath();ctx.arc(0,-16,16,0,7);ctx.fill();
 ctx.fillStyle=ang?'#c0281c':'#b85c20';
 ctx.beginPath();ctx.ellipse(-8+wp,-2,8,5,0,0,7);ctx.ellipse(8-wp,-2,8,5,0,0,7);ctx.fill();
 ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-6,-19,5,0,7);ctx.arc(6,-19,5,0,7);ctx.fill();
-ctx.fillStyle='#111';ctx.beginPath();ctx.arc(-5+(e.dir>0?2:-2)*0,-18,2.4,0,7);ctx.arc(7,-18,2.4,0,7);ctx.fill();
+ctx.fillStyle='#111';ctx.beginPath();ctx.arc(-6+e.dir*2,-18,2.4,0,7);ctx.arc(6+e.dir*2,-18,2.4,0,7);ctx.fill();
 ctx.strokeStyle='#4a1209';ctx.lineWidth=3;ctx.lineCap='round';
 ctx.beginPath();ctx.moveTo(-12,ang?-27:-25);ctx.lineTo(-2,ang?-22:-25);ctx.moveTo(12,ang?-27:-25);ctx.lineTo(2,ang?-22:-25);ctx.stroke();
 ctx.fillStyle='#fff3c4';ctx.beginPath();ctx.moveTo(-4,-31);ctx.lineTo(0,-40);ctx.lineTo(4,-31);ctx.closePath();ctx.fill();
@@ -1015,7 +1021,7 @@ ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,VW,VH);
 text('ゲームオーバー',VW/2,230,52,'center','#ff6b6b');
 text('SCORE  '+score,VW/2,300,28,'center');
 text('HI-SCORE  '+hiScore,VW/2,340,20,'center','#ffd93d');
-if(score>0&&score===hiScore&&Math.floor(t*3)%2===0)text('★ NEW RECORD! ★',VW/2,372,22,'center','#7dff9a');
+newRecord(372);
 if(Math.floor(t*2)%2===0)
 text('スペース / タップ で タイトルへ',VW/2,415,22,'center');
 return;}
@@ -1025,13 +1031,13 @@ text('ぜんぶ クリア おめでとう！',VW/2,200,46,'center','#ffd93d');
 text('SCORE  '+score,VW/2,280,30,'center','#7dff9a');
 text('コイン  '+coinsN,VW/2,330,26,'center');
 text('HI-SCORE  '+hiScore,VW/2,368,20,'center','#ffd93d');
-if(score>0&&score===hiScore&&Math.floor(t*3)%2===0)text('★ NEW RECORD! ★',VW/2,396,22,'center','#7dff9a');
+newRecord(396);
 if(Math.floor(t*2)%2===0)
 text('スペース / タップ で タイトルへ',VW/2,445,22,'center');}}
 function render(){
 ctx.setTransform(RS,0,0,RS,0,0);
 drawSky();drawParallax();
-ctx.save();ctx.translate(-Math.round(cam.x)+(shake>0?(Math.random()-.5)*shake*14:0),shake>0?(Math.random()-.5)*shake*14:0);
+ctx.save();{const sh=state==='playing'&&shake>0?shake*14:0;ctx.translate(-Math.round(cam.x)+(Math.random()-.5)*sh,(Math.random()-.5)*sh);}
 if(level){
 drawCastle();
 drawTiles();
