@@ -315,7 +315,8 @@ function sparks(x,y,n,color){
 for(let i=0;i<n;i++){const a=Math.random()*6.283,v=80+Math.random()*160;
 particles.push({kind:'spark',x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,t:.5+Math.random()*.4,color:color});}}
 let shake=0,cpOn=false,lifts=[],springCD=0,fadeIn=0,fwT=0,hiScore=0,hiDirty=false,stompCombo=0;
-let maxLevel=0,startLevel=0;
+let maxLevel=0,startLevel=0,quitArm=0;
+const QUIT={x:330,y:450,w:300,h:52};
 try{hiScore=parseInt(localStorage.getItem('mike_hi'),10)||0;maxLevel=parseInt(localStorage.getItem('mike_max'),10)||0;}catch(e){}
 function pickStage(d){
 if(state!=='title')return;
@@ -619,6 +620,7 @@ else if(state==='flag'){updateFlag(dt);updateParticles(dt);}
 else if(state==='dying'){updateDying(dt);}
 else if(level)updateParticles(dt);
 if(fadeIn>0)fadeIn-=dt;
+quitArm=state==='paused'?Math.max(0,quitArm-dt):0;
 if(state==='clear'){
 fwT-=dt;
 if(fwT<=0){fwT=.3;
@@ -1010,6 +1012,9 @@ text(TOUCH?'タップ で さいかい':'P か タップ で さいかい',VW/2,
 text('ヒント: 旗を通るとやられても途中から再開',VW/2,VH/2+85,18,'center','#cfe8ff');
 text('キノコが出る？ブロックを大きいとき叩くとスター(無敵8秒)',VW/2,VH/2+112,18,'center','#cfe8ff');
 text(TOUCH?'◀▶: いどう   JUMP: ジャンプ   RUN: ダッシュ':'M: おとON/OFF   ←→/AD: いどう   Shift/J: ダッシュ',VW/2,VH/2+139,18,'center','#cfe8ff');
+panel(QUIT.x,QUIT.y,QUIT.w,QUIT.h);
+const armed=quitArm>0;
+text(armed?'もういちど で タイトルへ':TOUCH?'タイトルへ もどる':'タイトルへ もどる (Q)',VW/2,QUIT.y+33,20,'center',armed?'#ff6b6b':'#fff');
 return;}
 if(state==='clear'){
 ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(0,0,VW,VH);
@@ -1080,6 +1085,7 @@ if(key==='p'||key==='escape'){
 if(state==='playing')state='paused';
 else if(state==='paused')state='playing';}
 else if(key==='m'){Sfx.init();Sfx.muted=!Sfx.muted;BGM.next=0;}
+else if(key==='q'){if(!e.repeat)quitToTitle();}
 else if(key==='enter')primaryAction();});
 window.addEventListener('keyup',e=>{
 const k=KEYMAP[e.key];
@@ -1104,6 +1110,10 @@ b.addEventListener('pointerdown',on);
 b.addEventListener('pointerup',off);
 b.addEventListener('pointercancel',off);
 b.addEventListener('pointerleave',off);});
+function quitToTitle(){
+if(state!=='paused')return;
+if(quitArm>0){quitArm=0;levelBanner=0;state='title';BGM.next=0;}
+else quitArm=2.5;}
 function togglePause(){
 if(state==='playing')state='paused';
 else if(state==='paused')state='playing';}
@@ -1119,6 +1129,7 @@ Sfx.init();
 const p=canvasPoint(e);
 if(p.x>VW-140&&p.y<46){
 Sfx.muted=!Sfx.muted;BGM.next=0;return;}
+if(state==='paused'&&p.x>=QUIT.x&&p.x<=QUIT.x+QUIT.w&&p.y>=QUIT.y&&p.y<=QUIT.y+QUIT.h){quitToTitle();return;}
 if(state==='title'||state==='clear'||state==='gameover'||state==='win'
 ||state==='paused')primaryAction();});
 window.addEventListener('contextmenu',e=>e.preventDefault());
