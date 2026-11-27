@@ -469,7 +469,7 @@ function primaryAction(){
 Sfx.init();
 if(state==='title')startGame();
 else if(state==='clear')nextLevel();
-else if(state==='gameover'||state==='win'){state='title';}
+else if(state==='gameover'||state==='win'){startLevel=state==='win'?0:levelIndex;state='title';}
 else if(state==='paused')state='playing';
 else if(state==='playing')jumpBuffer=.12;}
 function tileTriggers(){
@@ -999,7 +999,7 @@ text('スーパーミケの大冒険',VW/2,140,54,'center','#ffd93d');
 text('SUPER MIKE no DAIBOUKEN',VW/2,190,18,'center','#fff');
 text('PC: ←→ でうごく ／ SPACE ジャンプ ／ SHIFT はしる',VW/2,280,21,'center');
 text('モバイル: 画面下のボタンで うごく・ジャンプ',VW/2,320,21,'center');
-text('コインをあつめて はた（きょしゅう）をのぼろう！',VW/2,368,21,'center','#ffe6bf');
+text('コインをあつめて ゴールの はたに とびつこう！（高いほど高得点）',VW/2,368,21,'center','#ffe6bf');
 text('HI-SCORE  '+hiScore,VW/2,402,20,'center','#ffd93d');
 if(maxLevel>0)text('◀ ステージ '+LEVELS[startLevel].name.slice(0,3)+' ▶',VW/2,432,22,'center','#ffffff');
 if(Math.floor(t*2)%2===0)
@@ -1112,7 +1112,7 @@ b.addEventListener('pointercancel',off);
 b.addEventListener('pointerleave',off);});
 function quitToTitle(){
 if(state!=='paused')return;
-if(quitArm>0){quitArm=0;levelBanner=0;state='title';BGM.next=0;}
+if(quitArm>0){quitArm=0;levelBanner=0;startLevel=levelIndex;state='title';BGM.next=0;}
 else quitArm=2.5;}
 function togglePause(){
 if(state==='playing')state='paused';
