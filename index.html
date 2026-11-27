@@ -542,9 +542,10 @@ e.walk+=dt*12;
 }else{
 if(e.type==='dash'){const dx=(p.x+p.w/2)-(e.x+e.w/2);
 e.calm=Math.max(0,(e.calm||0)-dt);
-if(e.calm<=0&&e.onGround&&Math.abs(dx)<300&&Math.abs(p.y-e.y)<80){e.dir=dx<0?-1:1;e.spd=210;e.mad=true;}
-else if(!e.mad)e.spd=55;
-if(Math.abs(dx)>420||e.calm>0){e.mad=false;e.spd=55;}
+if(e.calm<=0&&e.onGround&&Math.abs(dx)<300&&Math.abs(p.y-e.y)<80){e.dir=dx<0?-1:1;if(!e.mad){e.mad=true;e.wind=.4;popup(e.x,e.y-14,'!','#ff6b6b');Sfx.tone(220,440,.18,'sawtooth',.04);}}
+if(Math.abs(dx)>420||e.calm>0)e.mad=false;
+if(e.mad){e.wind=Math.max(0,e.wind-dt);e.spd=e.wind>0?0:210;}
+else e.spd=55;
 if(e.onGround&&!SOLID.has(cell(Math.floor((e.x+(e.dir>0?e.w+4:-4))/TILE),Math.floor((e.y+e.h+4)/TILE)))){e.dir*=-1;e.mad=false;e.spd=55;e.calm=1;}}
 if(e.type!=='mush'&&e.type!=='star'&&cell(Math.floor((e.x+(e.dir>0?e.w+3:-3))/TILE),Math.floor((e.y+e.h-3)/TILE))==='^')e.dir*=-1;
 e.vx=e.dir*e.spd;
